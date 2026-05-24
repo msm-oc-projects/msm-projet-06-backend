@@ -53,6 +53,10 @@ jobs:
             exit 1
           fi
 
+      - name: Show detected project type
+        run: |
+          echo "Detected project type: ${{ steps.detect.outputs.project_type }}"
+
       - name: Setup Node.js
         if: steps.detect.outputs.project_type == 'npm' || steps.detect.outputs.project_type == 'multi'
         uses: actions/setup-node@v4
@@ -188,6 +192,91 @@ jobs:
           context: .
           file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
+          tags: "${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  release:
+    name: Release application
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install semantic-release
+        run: |
+          npm install --global \
+            semantic-release \
+            @semantic-release/commit-analyzer \
+            @semantic-release/release-notes-generator \
+            @semantic-release/changelog \
+            @semantic-release/exec \
+            @semantic-release/git \
+            @semantic-release/github
+
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: semantic-release
+
+      - name: Read released version
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -f .release-version ]; then
+            version="$(cat .release-version)"
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "version=${version}" >> "$GITHUB_OUTPUT"
+            echo "Released version: ${version}"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "No semantic-release version was published."
+          fi
+
+      - name: Compute release image name
+        if: steps.release.outputs.published == 'true'
+        id: image
+        shell: bash
+        run: |
+          image_repository="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+          echo "name=${REGISTRY}/${image_repository}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        if: steps.release.outputs.published == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: steps.release.outputs.published == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push release Docker image
+        if: steps.release.outputs.published == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: "${{ steps.image.outputs.name }}:${{ steps.release.outputs.version }}"
           cache-from: type=gha
           cache-to: type=gha,mode=max
