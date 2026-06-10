@@ -1,48 +1,66 @@
-# Workshop Organizer Web API
+# API Web Workshop Organizer
 
-Welcome to the Workshop Organizer Web API! This application is designed to facilitate workshops open to the public. Whether you’re organizing coding bootcamps, art classes, or any other type of workshop, this API will help manage registrations, schedules, and resources.
+Bienvenue sur l'API Web Workshop Organizer ! Cette application facilite
+l'organisation d'ateliers ouverts au public. Qu'il s'agisse de stages de
+programmation, de cours d'art ou de tout autre type d'atelier, cette API permet
+de gérer les inscriptions, les plannings et les ressources.
 
-## Table of Contents
+## Table des matières
 
-1. Context
-2. Technical Overview
-3. Building and Running
-4. Testing
-5. Packaging
-6. Publishing to GitLab Registry
+1. Contexte
+2. Présentation technique
+3. Compilation et exécution
+4. Configuration
+5. Tests
+6. Empaquetage
+7. Publication dans le registre GitLab
 
-## Context
+## Contexte
 
-Workshops play a crucial role in fostering learning and collaboration. Our application aims to streamline the workshop organization process, making it easier for organizers to manage participants, sessions, and materials. Whether you're a seasoned workshop host or just starting out, this API has got you covered!
+Les ateliers jouent un rôle essentiel dans l'apprentissage et la collaboration.
+Cette application vise à simplifier leur organisation en facilitant la gestion
+des participants, des sessions et du matériel. Elle accompagne aussi bien les
+organisateurs expérimentés que ceux qui préparent leur premier atelier.
 
-## Technical Overview
+## Présentation technique
 
-- **Java Development Kit (JDK):** We use **JDK 21**, tested with **Adoptium**, to power our application.
-- **Database:** Our backend relies on a **PostgreSQL 13** database for data storage.
-- **Build Tool:** We leverage **Gradle 8.7** for managing dependencies and building the project.
-- **Spring Boot:** Our application is based on **Spring Boot 3.2.4**, which provides a robust framework for creating RESTful APIs.
-- **Application Server:** Our application can run on Tomcat server that require version 10.1.24.
+- **Java Development Kit (JDK) :** l'application utilise **JDK 21**, testé avec
+  **Adoptium**.
+- **Base de données :** le backend utilise **PostgreSQL 13** pour le stockage
+  des données.
+- **Outil de build :** **Gradle 8.7** gère les dépendances et la compilation du
+  projet.
+- **Spring Boot :** l'application repose sur **Spring Boot 3.2.4** pour créer
+  l'API REST.
+- **Serveur d'applications :** l'application peut être exécutée sur un serveur
+  Tomcat **10.1.24**.
 
-## Building and Running
+## Compilation et exécution
 
-To compile and run the application locally, follow these steps:
+Pour compiler et exécuter l'application localement :
 
-1. Ensure you have JDK 21 installed.
-2. Clone this repository.
-3. Navigate to the project root directory.
-4. Execute the following command to compile the Java code :
+1. Vérifiez que JDK 21 est installé.
+2. Clonez ce dépôt.
+3. Placez-vous à la racine du projet.
+4. Compilez le code Java :
+
    ```bash
    ./gradlew clean compileJava
    ```
-5. To run the application locally, either:
-   Execute the main method in the Application class from your IDE.
-   Use the Spring Boot Gradle Plugin :
-   ```bash
-   ./gradlew bootRun
-   ```
-   For production, package the application as WAR and use a tomcat server
 
-To run correctly the application with docker after you building it with tag workshop-organizer, run the following
+5. Exécutez l'application localement avec l'une des méthodes suivantes :
+   - lancez la méthode principale de la classe `Application` depuis votre IDE ;
+   - utilisez le plugin Gradle de Spring Boot :
+
+     ```bash
+     ./gradlew bootRun
+     ```
+
+Pour la production, générez une archive WAR et déployez-la sur un serveur
+Tomcat.
+
+Après avoir construit l'image Docker avec le tag `workshop-organizer`, démarrez
+l'application avec :
 
 ```bash
 docker compose up -d
@@ -50,47 +68,49 @@ docker compose up -d
 
 ## Configuration
 
-You can configure the application with these environment variables
+L'application peut être configurée avec les variables d'environnement
+suivantes :
 
-- SPRING_DATASOURCE_URL: JDBC URI for DB access (ex. jdbc:postgresql://db:5432/mydatabase)
-- SPRING_DATASOURCE_USERNAME: Database user name used by the application
-- SPRING_DATASOURCE_PASSWORD: Database user password used by the application
+- `SPRING_DATASOURCE_URL` : URL JDBC d'accès à la base de données, par exemple
+  `jdbc:postgresql://db:5432/mydatabase`.
+- `SPRING_DATASOURCE_USERNAME` : nom de l'utilisateur de la base de données.
+- `SPRING_DATASOURCE_PASSWORD` : mot de passe de l'utilisateur de la base de
+  données.
 
-## Testing
+## Tests
 
-We take testing seriously! To verify the correctness of our application, run the following command:
+Pour vérifier le bon fonctionnement de l'application, exécutez :
 
 ```bash
 ./gradlew clean test
 ```
 
-During execution junit reports are generated in the `build/test-results/test` folder.
+Les rapports JUnit sont générés dans le dossier `build/test-results/test`.
 
-## Packaging
+## Empaquetage
 
-When you’re ready to package the application for deployment, create a deployable WAR file:
+Pour préparer l'application au déploiement, générez une archive WAR :
 
 ```bash
 ./gradlew bootWar
 ```
 
-The generated war file can be used with many application servers such as Tomcat, Wildfly...
+Le fichier WAR généré peut être utilisé avec différents serveurs
+d'applications, notamment Tomcat et WildFly.
 
-## Publishing to GitLab Registry
+## Publication dans le registre GitLab
 
-To publish your application to a GitLab registry, follow these steps:
+Pour publier l'application dans un registre GitLab :
 
-1. Set up your GitLab project.
-2. Ensure you have the following environment variables configured:
+1. Configurez votre projet GitLab.
+2. Définissez les variables d'environnement suivantes :
+   - `GITLAB_PROJECT_ID` : identifiant du projet GitLab ;
+   - `GITLAB_TOKEN_NAME` : nom du jeton d'accès GitLab ;
+   - `GITLAB_TOKEN` : jeton d'accès GitLab.
+3. Publiez l'application :
 
-   - GITLAB_PROJECT_ID: The ID of your GitLab project.
-   - GITLAB_TOKEN_NAME: The name of the GitLab access token.
-   - GITLAB_TOKEN: Your GitLab access token.
-
-3. Execute the following command to publish your application:
    ```bash
    ./gradlew publish
    ```
-   Remember to replace placeholders with actual values specific to your project.
 
-Feel free to enhance this README with additional details, such as API endpoints, security considerations, and deployment instructions. Happy organizing! 🚀
+Remplacez les valeurs d'exemple par celles correspondant à votre projet.
