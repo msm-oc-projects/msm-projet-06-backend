@@ -1,12 +1,18 @@
+# Métadonnées de versionnement et configurations propres aux IDE.
 .git
 .gitignore
+.gitattributes
 .gradle
+.idea
+.vscode
+
+# Artefacts de compilation générés localement.
 build
 bin
 out
 *.iml
-.idea
-.vscode
+
+# Fichiers de développement inutiles dans le contexte de construction.
 Dockerfile
 docker-compose.yml
 README.md

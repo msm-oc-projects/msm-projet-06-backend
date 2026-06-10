@@ -1,35 +1,66 @@
 services:
+  # API Spring Boot construite localement à partir du Dockerfile multi-stage.
   app:
     build:
       context: .
       dockerfile: Dockerfile
     image: workshop-organizer
+
+    # Le port interne et le port publié sont configurables, tout en conservant
+    # http://localhost:8080 comme comportement par défaut.
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
+
+    # Le nom d'hôte `db` correspond au nom du service PostgreSQL sur le réseau
+    # Compose privé. `localhost` désignerait le conteneur de l'application.
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/workshopsdb
-      SPRING_DATASOURCE_USERNAME: workshops_user
-      SPRING_DATASOURCE_PASSWORD: oc2024
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-workshopsdb}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-workshops_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-oc2024}
+
+    # Compose attend que PostgreSQL accepte réellement les connexions avant de
+    # créer le processus Spring Boot.
     depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
 
+    # Contrôle l'endpoint métier réel, puisque Spring Boot Actuator n'est pas
+    # installé dans ce projet.
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://127.0.0.1:8080/api/workshops >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+    restart: unless-stopped
+    stop_grace_period: 20s
+
+  # Base relationnelle utilisée exclusivement par l'API sur le réseau Compose.
   db:
     image: postgres:13
     environment:
-      POSTGRES_USER: workshops_user
-      POSTGRES_PASSWORD: oc2024
-      POSTGRES_DB: workshopsdb
+      POSTGRES_USER: ${POSTGRES_USER:-workshops_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-oc2024}
+      POSTGRES_DB: ${POSTGRES_DB:-workshopsdb}
+
+    # Le volume nommé conserve les tables lorsque les conteneurs sont recréés.
+    # `docker compose down` le préserve ; l'option `--volumes` le supprime.
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+    # `pg_isready` vérifie l'acceptation des connexions, pas seulement
+    # l'existence du processus postgres.
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U workshops_user -d workshopsdb"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
-    restart: unless-stopped
 
+    restart: unless-stopped
+    stop_grace_period: 20s
+
+# Volume géré par Docker et indépendant du cycle de vie des conteneurs.
 volumes:
   postgres_data:

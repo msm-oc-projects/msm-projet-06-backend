@@ -1,2 +1,15 @@
 gradlew text eol=lf
 *.bat text eol=crlf
+
+# Fichiers interprétés dans des images ou outils Linux.
+Dockerfile text eol=lf
+docker-compose.yml text eol=lf
+.dockerignore text eol=lf
+*.sh text eol=lf
+
+# Sources, configuration et documentation normalisées entre Windows et Linux.
+*.gradle text eol=lf
+*.properties text eol=lf
+*.sql text eol=lf
+*.md text eol=lf
+.gitattributes text eol=lf
