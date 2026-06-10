@@ -83,14 +83,15 @@ publishing {
     }
     repositories {
 		maven {
-			url "https://gitlab.com/api/v4/projects/$System.env.GITLAB_PROJECT_ID/packages/maven"
-			name "GitLab"
-			credentials(HttpHeaderCredentials) {
-				name = System.getenv("GITLAB_TOKEN_NAME")
-				value = System.getenv("GITLAB_TOKEN")
-			}
-			authentication {
-				header(HttpHeaderAuthentication)
+			// GitHub Actions fournit GITHUB_REPOSITORY sous la forme
+			// organisation/depot. La valeur locale par défaut correspond au
+			// remote officiel du projet.
+			def githubRepository = System.getenv("GITHUB_REPOSITORY") ?: "msm-oc-projects/msm-projet-06-backend"
+			url = uri("https://maven.pkg.github.com/${githubRepository}")
+			name = "GitHubPackages"
+			credentials {
+				username = System.getenv("GITHUB_ACTOR") ?: findProperty("gpr.user")
+				password = System.getenv("GITHUB_TOKEN") ?: findProperty("gpr.key")
 			}
 		}
     }

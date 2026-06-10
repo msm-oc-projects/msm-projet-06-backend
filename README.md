@@ -13,7 +13,7 @@ de gérer les inscriptions, les plannings et les ressources.
 4. Configuration
 5. Tests
 6. Empaquetage
-7. Publication dans le registre GitLab
+7. Publication dans GitHub Packages
 
 ## Contexte
 
@@ -311,19 +311,46 @@ Pour préparer l'application au déploiement, générez une archive WAR :
 Le fichier WAR généré peut être utilisé avec différents serveurs
 d'applications, notamment Tomcat et WildFly.
 
-## Publication dans le registre GitLab
+## Publication dans GitHub Packages
 
-Pour publier l'application dans un registre GitLab :
+Le dépôt Gradle `GitHubPackages` publie l'archive WAR dans le registre Maven
+associé au dépôt GitHub :
 
-1. Configurez votre projet GitLab.
-2. Définissez les variables d'environnement suivantes :
-   - `GITLAB_PROJECT_ID` : identifiant du projet GitLab ;
-   - `GITLAB_TOKEN_NAME` : nom du jeton d'accès GitLab ;
-   - `GITLAB_TOKEN` : jeton d'accès GitLab.
-3. Publiez l'application :
+```text
+https://maven.pkg.github.com/msm-oc-projects/msm-projet-06-backend
+```
 
-   ```bash
-   ./gradlew publish
-   ```
+Dans GitHub Actions, le workflow utilise automatiquement :
 
-Remplacez les valeurs d'exemple par celles correspondant à votre projet.
+- `GITHUB_REPOSITORY` pour identifier le dépôt ;
+- `GITHUB_ACTOR` comme utilisateur ;
+- `GITHUB_TOKEN` avec la permission `packages: write`.
+
+La publication est exécutée après la création d'une version par
+semantic-release.
+
+Pour publier manuellement, utilisez un Personal Access Token autorisé à écrire
+dans GitHub Packages :
+
+```bash
+export GITHUB_REPOSITORY=msm-oc-projects/msm-projet-06-backend
+export GITHUB_ACTOR=votre-utilisateur-github
+export GITHUB_TOKEN=votre-token
+./gradlew publish
+```
+
+Il est également possible de placer les identifiants dans
+`~/.gradle/gradle.properties` :
+
+```properties
+gpr.user=votre-utilisateur-github
+gpr.key=votre-token
+```
+
+Puis de publier :
+
+```bash
+./gradlew publish
+```
+
+Ne versionnez jamais le token.
