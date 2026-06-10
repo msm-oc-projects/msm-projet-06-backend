@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/msm-oc-projects/msm-projet-06-backend/compare/v1.0.1...v1.1.0) (2026-06-10)
+
+
+### Features
+
+* **backend:** conteneuriser l'API Spring Boot avec PostgreSQL ([5b837df](https://github.com/msm-oc-projects/msm-projet-06-backend/commit/5b837dfb0f72691f392134064b8a4466b822cc05))
+
 ## [1.0.1](https://github.com/msm-oc-projects/msm-projet-06-backend/compare/v1.0.0...v1.0.1) (2026-06-10)
 
 
