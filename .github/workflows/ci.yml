@@ -18,19 +18,11 @@ permissions:
   pull-requests: write
   packages: write
 
-env:
-  NODE_VERSION: "20.19"
-  JAVA_VERSION: "21"
-  REGISTRY: ghcr.io
-  TEST_RESULTS_DIR: test-results
-
 jobs:
   pipeline:
     uses: msm-oc-projects/msm-projet-06-ops/.github/workflows/ci.yml@main
 
   release:
-    name: Release application
-    runs-on: ubuntu-latest
     needs: pipeline
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     permissions:
@@ -38,91 +30,6 @@ jobs:
       issues: write
       pull-requests: write
       packages: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install semantic-release
-        run: |
-          npm install --global \
-            semantic-release \
-            @semantic-release/commit-analyzer \
-            @semantic-release/release-notes-generator \
-            @semantic-release/changelog \
-            @semantic-release/exec \
-            @semantic-release/git \
-            @semantic-release/github
-
-      - name: Run semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: semantic-release
-
-      - name: Read released version
-        id: release
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ -f .release-version ]; then
-            version="$(cat .release-version)"
-            echo "published=true" >> "$GITHUB_OUTPUT"
-            echo "version=${version}" >> "$GITHUB_OUTPUT"
-            echo "Released version: ${version}"
-          else
-            echo "published=false" >> "$GITHUB_OUTPUT"
-            echo "No semantic-release version was published."
-          fi
-
-      - name: Setup Java for GitHub Packages
-        if: steps.release.outputs.published == 'true'
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-
-      - name: Publish Maven package to GitHub Packages
-        if: steps.release.outputs.published == 'true'
-        env:
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew publish --no-daemon
-
-      - name: Compute release image name
-        if: steps.release.outputs.published == 'true'
-        id: image
-        shell: bash
-        run: |
-          image_repository="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
-          echo "name=${REGISTRY}/${image_repository}" >> "$GITHUB_OUTPUT"
-
-      - name: Set up Docker Buildx
-        if: steps.release.outputs.published == 'true'
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        if: steps.release.outputs.published == 'true'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push release Docker image
-        if: steps.release.outputs.published == 'true'
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: "${{ steps.image.outputs.name }}:${{ steps.release.outputs.version }}"
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    uses: msm-oc-projects/msm-projet-06-ops/.github/workflows/release.yml@main
+    secrets:
+      github_token: ${{ secrets.GITHUB_TOKEN }}
