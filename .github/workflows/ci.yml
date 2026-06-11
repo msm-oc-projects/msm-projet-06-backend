@@ -32,4 +32,4 @@ jobs:
       packages: write
     uses: msm-oc-projects/msm-projet-06-ops/.github/workflows/release.yml@main
     secrets:
-      github_token: ${{ secrets.GITHUB_TOKEN }}
+      release_token: ${{ secrets.GITHUB_TOKEN }}
